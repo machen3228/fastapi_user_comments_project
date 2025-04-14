@@ -24,3 +24,16 @@ async def check_comment_before_edit(
             detail='Невозможно редактировать или удалить чужуй комментарий!'
         )
     return comment
+
+
+async def check_user_exists(
+        user_id: int,
+        session: AsyncSession,
+):
+    db_user = await session.get(User, user_id)
+    if not db_user:
+        raise HTTPException(
+            status_code=403,
+            detail='Пользователь не найден!'
+        )
+    return db_user

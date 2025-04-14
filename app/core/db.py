@@ -23,4 +23,10 @@ AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession)
 
 async def get_async_session():
     async with AsyncSessionLocal() as async_session:
-        yield async_session
+        try:
+            yield async_session
+        except Exception as e:
+            await async_session.rollback()
+            raise e
+        finally:
+            await async_session.close()

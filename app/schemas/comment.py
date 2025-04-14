@@ -1,33 +1,32 @@
 from datetime import datetime
-from pydantic import BaseModel, Field, validator, Extra
+from pydantic import BaseModel, Field, validator
 from typing import Optional
+from fastapi import Form
 
 
-class CommentBase(BaseModel):
-
-    class Config:
-        extra = Extra.forbid
-
-
-class CommentCreate(CommentBase):
-    comment_text: str = Field(
-        ...,
-        max_length=5000,
-        description="Текст комментария"
-    )
-    user_id: int
-
-    class Config:
-        title = 'Класс для создания комментария'
-        schema_extra = {
-           'example': {
-               'comment_text': 'Текст комментария',
-               'user_id': 0
-           }
-        }
+COMMENT_TEXT_META = {
+    "description": "Основной текст, который пользователь отправляет",
+    "max_length": 5000
+}
+USER_ID_META = {
+    "description": "Идентификатор пользователя, которому адресован комментарий"
+}
 
 
-class CommentUpdate(CommentBase):
+class CommentCreate(BaseModel):
+    comment_text: str = Field(..., **COMMENT_TEXT_META)
+    user_id: int = Field(..., **USER_ID_META)
+
+    @classmethod
+    def as_form(
+        cls,
+        comment_text: str = Form(..., **COMMENT_TEXT_META),
+        user_id: int = Form(..., **USER_ID_META)
+    ) -> "CommentCreate":
+        return cls(comment_text=comment_text, user_id=user_id)
+
+
+class CommentUpdate(BaseModel):
     comment_text: str = Field(
         ...,
         max_length=5000,
@@ -35,13 +34,25 @@ class CommentUpdate(CommentBase):
     )
 
     @validator('comment_text')
-    def name_cannot_be_null(cls, value):
-        if value is None:
+    def text_cannot_be_null(cls, value):
+        if value is None or value.strip() == '':
             raise ValueError('Комментарий не может быть пустым!')
         return value
 
+    @classmethod
+    def as_form(
+        cls,
+        comment_text: str = Form(
+            ...,
+            max_length=5000,
+            title="Обновленный текст комментария",
+            description="Комментарий, который пользователь хочет обновить"
+        )
+    ) -> "CommentUpdate":
+        return cls(comment_text=comment_text)
 
-class CommentResponse(CommentBase):
+
+class CommentResponse(BaseModel):
     id: int
     user_id: int
     author_id: int
@@ -54,7 +65,7 @@ class CommentResponse(CommentBase):
         orm_mode = True
 
 
-class CommentDB(CommentBase):
+class CommentDB(BaseModel):
     id: int
     user_id: int
     author_id: int

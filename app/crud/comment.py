@@ -1,8 +1,6 @@
-from typing import Optional
-
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 from app.models import Comment, User
 from app.schemas.comment import CommentCreate, CommentUpdate
@@ -40,6 +38,18 @@ async def get_comment_by_user(
         )
     )
     return comments.scalars().all()
+
+
+async def search_comments_by_keyword(
+    keyword: str,
+    session: AsyncSession
+) -> list[Comment]:
+    comments = (await session.execute(select(Comment))).scalars().all()
+    result = [
+        c for c in comments
+        if keyword.lower() in c.comment_text.lower()
+    ]
+    return result
 
 
 async def update_comment(

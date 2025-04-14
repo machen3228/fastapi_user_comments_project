@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from typing import Annotated
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -6,13 +7,15 @@ from app.core.db import get_async_session
 from app.core.user import current_user
 from app.crud.comment import (
     create_comment, get_comment_by_user,
-    update_comment, delete_comment
+    update_comment, delete_comment, search_comments_by_keyword
 )
 from app.schemas.comment import (
     CommentCreate, CommentDB, CommentUpdate, CommentResponse
 )
 from app.models import User
-from app.api.endpoints.validators import check_comment_before_edit
+from app.api.endpoints.validators import (
+    check_comment_before_edit, check_user_exists
+)
 
 
 router = APIRouter()
@@ -24,11 +27,12 @@ router = APIRouter()
         summary='Создание нового комментария'
 )
 async def create_new_comment(
-        comment: CommentCreate,
+        comment: CommentCreate = Depends(CommentCreate.as_form),
         author: User = Depends(current_user),
         session: AsyncSession = Depends(get_async_session),
 ):
     '''Только для авторизованных пользователей'''
+    await check_user_exists(comment.user_id, session)
     new_comment = await create_comment(comment, author, session)
     return new_comment
 
@@ -61,7 +65,11 @@ async def get_my_comments(
         summary='Получение комментария по id'
 )
 async def get_comment(
-    comment_id: int,
+    comment_id: int = Path(
+        ...,
+        title="ID комментария",
+        description="Идентификатор комментария, который нужно вернуть"
+        ),
     author: User = Depends(current_user),
     session: AsyncSession = Depends(get_async_session),
 ):
@@ -72,14 +80,32 @@ async def get_comment(
     return comment
 
 
+@router.get(
+        '/search/',
+        response_model=list[CommentDB],
+        summary='Поиск комментариев по ключевым словам'
+)
+async def search_comments(
+    keyword: str = Query(..., description="Ключевое слово для поиска"),
+    session: AsyncSession = Depends(get_async_session)
+):
+    '''Для всех пользователей'''
+    comments = await search_comments_by_keyword(keyword, session)
+    return comments
+
+
 @router.patch(
     '/{comment_id}',
     response_model=CommentResponse,
     summary='Редактирование комментария'
 )
 async def partially_update_comment(
-        comment_id: int,
-        obj_in: CommentUpdate,
+        comment_id: int = Path(
+        ...,
+        title="ID комментария",
+        description="Идентификатор комментария, который нужно отредактировать"
+        ),
+        obj_in: CommentUpdate = Depends(CommentUpdate.as_form),
         author: User = Depends(current_user),
         session: AsyncSession = Depends(get_async_session),
 ):
@@ -99,7 +125,11 @@ async def partially_update_comment(
     summary='Удаление комментария'
 )
 async def remove_comment(
-        comment_id: int,
+        comment_id: int = Path(
+        ...,
+        title="ID комментария",
+        description="Идентификатор комментария, который нужно удалить"
+        ),
         author: User = Depends(current_user),
         session: AsyncSession = Depends(get_async_session),
 ):

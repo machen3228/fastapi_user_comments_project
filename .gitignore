@@ -1,3 +1,4 @@
 .env
 fastapi.db
 .mypy_cache/
+venv/
