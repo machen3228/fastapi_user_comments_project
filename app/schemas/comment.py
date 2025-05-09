@@ -62,7 +62,7 @@ class CommentResponse(BaseModel):
     is_edited: bool
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class CommentDB(BaseModel):
@@ -76,4 +76,4 @@ class CommentDB(BaseModel):
     )
 
     class Config:
-        orm_mode = True
+        from_attributes = True

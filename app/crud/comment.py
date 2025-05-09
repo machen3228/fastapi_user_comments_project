@@ -1,14 +1,16 @@
 from fastapi.encoders import jsonable_encoder
+
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select
 
 from app.models import Comment, User
+from app.schemas.auth import AuthUser
 from app.schemas.comment import CommentCreate, CommentUpdate
 
 
 async def create_comment(
         new_comment: CommentCreate,
-        author: User,
+        author: AuthUser,
         session: AsyncSession,
 ) -> Comment:
     new_comment_data = new_comment.dict()
@@ -30,7 +32,7 @@ async def get_comment_by_id(
 
 async def get_comment_by_user(
         session: AsyncSession,
-        author: User
+        author: AuthUser
 ) -> list[Comment]:
     comments = await session.execute(
         select(Comment).where(

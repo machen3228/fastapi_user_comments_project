@@ -1,43 +1,81 @@
-from typing import Optional, Union
+from fastapi import HTTPException, status
 
-from fastapi import Depends, Request
-from fastapi_users import (
-    BaseUserManager, IntegerIDMixin, InvalidPasswordException
-)
-from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.db import get_async_session
-from app.models.user import User
-from app.schemas.user import UserCreate
+from app.core.security import get_password_hash
+from app.models import User
+from app.schemas.auth import AuthUser
+from app.schemas.user import UserCreate, UserUpdate
 
 
-async def get_user_db(session: AsyncSession = Depends(get_async_session)):
-    yield SQLAlchemyUserDatabase(session, User)
+async def create_user(
+        user_in: UserCreate,
+        session: AsyncSession,
+) -> User:
+    '''Фунция создания пользователя'''
+    hashed_password = get_password_hash(user_in.password)
+    new_user = User(
+        email=user_in.email,
+        password=hashed_password,
+        username=user_in.username,
+        birthdate=user_in.birthdate
+    )
+    session.add(new_user)
+    await session.commit()
+    await session.refresh(new_user)
+
+    return new_user
 
 
-class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
-    async def validate_password(
-        self,
-        password: str,
-        user: Union[UserCreate, User],
-    ) -> None:
-        if len(password) < 3:
-            raise InvalidPasswordException(
-                reason='Password should be at least 3 characters'
+async def update_user(
+    user_id: int,
+    user_update: UserUpdate,
+    session: AsyncSession,
+    current_user: AuthUser,
+) -> User:
+    '''Фунция обновления пользователя'''
+    result = await session.execute(select(User).where(User.id == user_id))
+    user = result.scalars().first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Пользователь не найден"
+        )
+
+    if user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Недостаточно прав для редактирования этого пользователя"
+        )
+
+    if user_update.email and user_update.email != user.email:
+        existing = await session.execute(
+            select(User).where(User.email == user_update.email))
+        if existing.scalars().first():
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Пользователь с таким email уже существует"
             )
-        if user.email in password:
-            raise InvalidPasswordException(
-                reason='Password should not contain e-mail'
+        user.email = user_update.email
+
+    if user_update.username and user_update.username != user.username:
+        existing = await session.execute(
+            select(User).where(User.username == user_update.username))
+        if existing.scalars().first():
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Пользователь с таким username уже существует"
             )
+        user.username = user_update.username
 
-    async def on_after_register(
-        self,
-        user: User,
-        request: Optional[Request] = None
-    ):
-        print(f'Пользователь {user.email} зарегистрирован.')
+    if user_update.password:
+        user.password = get_password_hash(user_update.password)
 
+    if user_update.birthdate:
+        user.birthdate = user_update.birthdate
 
-async def get_user_manager(user_db=Depends(get_user_db)):
-    yield UserManager(user_db)
+    await session.commit()
+    await session.refresh(user)
+
+    return user

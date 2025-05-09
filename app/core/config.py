@@ -1,18 +1,17 @@
-from typing import Optional
-
-from pydantic import BaseSettings, EmailStr
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
     app_title: str = 'Сервис с комментариями'
     description: str = 'Содоржательное описание сервиса'
     database_url: str
-    secret: str = 'SECRET'
-    first_superuser_email: Optional[EmailStr]
-    first_superuser_password: Optional[str]
+    secret: str
+    jwt_algorithm: str = "HS256"
+    acess_token_expiration_seconds: int = 60 * 15
 
     class Config:
         env_file = '.env'
+        env_file_encoding = 'utf-8'
 
 
 settings = Settings()

@@ -1,20 +1,19 @@
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
-from typing import Annotated
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.endpoints.validators import (
+    check_comment_before_edit, check_user_exists
+)
+from app.core.auth.dependencies import get_current_auth_user
 from app.core.db import get_async_session
-from app.core.user import current_user
 from app.crud.comment import (
     create_comment, get_comment_by_user,
     update_comment, delete_comment, search_comments_by_keyword
 )
+from app.schemas.auth import AuthUser
 from app.schemas.comment import (
     CommentCreate, CommentDB, CommentUpdate, CommentResponse
-)
-from app.models import User
-from app.api.endpoints.validators import (
-    check_comment_before_edit, check_user_exists
 )
 
 
@@ -28,7 +27,7 @@ router = APIRouter()
 )
 async def create_new_comment(
         comment: CommentCreate = Depends(CommentCreate.as_form),
-        author: User = Depends(current_user),
+        author: AuthUser = Depends(get_current_auth_user),
         session: AsyncSession = Depends(get_async_session),
 ):
     '''Только для авторизованных пользователей'''
@@ -43,7 +42,7 @@ async def create_new_comment(
         summary='Получение всех комментариев автора'
 )
 async def get_my_comments(
-    author: User = Depends(current_user),
+    author: AuthUser = Depends(get_current_auth_user),
     session: AsyncSession = Depends(get_async_session),
 ):
     """Получает список всех комментариев для текущего пользователя."""
@@ -61,7 +60,6 @@ async def get_my_comments(
 @router.get(
         '/{comment_id}',
         response_model=CommentResponse,
-        dependencies=[Depends(current_user)],
         summary='Получение комментария по id'
 )
 async def get_comment(
@@ -70,10 +68,10 @@ async def get_comment(
         title="ID комментария",
         description="Идентификатор комментария, который нужно вернуть"
         ),
-    author: User = Depends(current_user),
+    author: AuthUser = Depends(get_current_auth_user),
     session: AsyncSession = Depends(get_async_session),
 ):
-    '''Только для для авторов комментариев и суперпользователей'''
+    '''Только для для авторов комментариев'''
     comment = await check_comment_before_edit(
         comment_id, session, author
     )
@@ -106,10 +104,10 @@ async def partially_update_comment(
         description="Идентификатор комментария, который нужно отредактировать"
         ),
         obj_in: CommentUpdate = Depends(CommentUpdate.as_form),
-        author: User = Depends(current_user),
+        author: AuthUser = Depends(get_current_auth_user),
         session: AsyncSession = Depends(get_async_session),
 ):
-    '''Только для для авторов комментариев и суперпользователей'''
+    '''Только для для авторов комментариев'''
     comment = await check_comment_before_edit(
         comment_id, session, author
     )
@@ -130,10 +128,10 @@ async def remove_comment(
         title="ID комментария",
         description="Идентификатор комментария, который нужно удалить"
         ),
-        author: User = Depends(current_user),
+        author: AuthUser = Depends(get_current_auth_user),
         session: AsyncSession = Depends(get_async_session),
 ):
-    '''Только для для авторов комментариев и суперпользователей'''
+    '''Только для для авторов комментариев'''
     comment = await check_comment_before_edit(
         comment_id, session, author
     )
