@@ -3,7 +3,6 @@ from fastapi.security import HTTPBearer
 
 from app.api.endpoints import auth_router, comment_router, user_router
 
-
 http_bearer = HTTPBearer(auto_error=False)
 
 main_router = APIRouter()

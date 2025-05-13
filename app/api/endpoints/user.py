@@ -8,7 +8,6 @@ from app.crud.user import create_user, update_user
 from app.schemas.auth import AuthUser
 from app.schemas.user import UserCreate, UserOut, UserUpdate
 
-
 router = APIRouter()
 
 

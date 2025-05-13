@@ -9,7 +9,7 @@ class AuthenticationSettings(BaseModel):
     """Настройки для JWT аутентификации"""
     secret: str = settings.secret
     jwt_algorithm: str = settings.jwt_algorithm
-    expiration_seconds: int = settings.acess_token_expiration_seconds
+    expiration_seconds: int = settings.access_token_expiration_seconds
 
 
 auth_backend = JWTAuthBackend(

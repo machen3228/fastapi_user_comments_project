@@ -13,7 +13,7 @@ async def create_user(
         user_in: UserCreate,
         session: AsyncSession,
 ) -> User:
-    '''Фунция создания пользователя'''
+    """Фунция создания пользователя"""
     hashed_password = get_password_hash(user_in.password)
     new_user = User(
         email=user_in.email,
@@ -29,12 +29,12 @@ async def create_user(
 
 
 async def update_user(
-    user_id: int,
-    user_update: UserUpdate,
-    session: AsyncSession,
-    current_user: AuthUser,
+        user_id: int,
+        user_update: UserUpdate,
+        session: AsyncSession,
+        current_user: AuthUser,
 ) -> User:
-    '''Фунция обновления пользователя'''
+    """Фунция обновления пользователя"""
     result = await session.execute(select(User).where(User.id == user_id))
     user = result.scalars().first()
     if not user:

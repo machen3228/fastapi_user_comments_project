@@ -11,5 +11,5 @@ oauth2_scheme = OAuth2PasswordBearer(
 
 
 def get_password_hash(password: str) -> str:
-    '''Функция хеширования пароля'''
+    """Функция хеширования пароля"""
     return pwd_context.hash(password)

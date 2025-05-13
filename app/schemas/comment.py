@@ -3,7 +3,6 @@ from pydantic import BaseModel, Field, validator
 from typing import Optional
 from fastapi import Form
 
-
 COMMENT_TEXT_META = {
     "description": "Основной текст, который пользователь отправляет",
     "max_length": 5000
@@ -19,9 +18,9 @@ class CommentCreate(BaseModel):
 
     @classmethod
     def as_form(
-        cls,
-        comment_text: str = Form(..., **COMMENT_TEXT_META),
-        user_id: int = Form(..., **USER_ID_META)
+            cls,
+            comment_text: str = Form(..., **COMMENT_TEXT_META),
+            user_id: int = Form(..., **USER_ID_META)
     ) -> "CommentCreate":
         return cls(comment_text=comment_text, user_id=user_id)
 
@@ -41,13 +40,13 @@ class CommentUpdate(BaseModel):
 
     @classmethod
     def as_form(
-        cls,
-        comment_text: str = Form(
-            ...,
-            max_length=5000,
-            title="Обновленный текст комментария",
-            description="Комментарий, который пользователь хочет обновить"
-        )
+            cls,
+            comment_text: str = Form(
+                ...,
+                max_length=5000,
+                title="Обновленный текст комментария",
+                description="Комментарий, который пользователь хочет обновить"
+            )
     ) -> "CommentUpdate":
         return cls(comment_text=comment_text)
 

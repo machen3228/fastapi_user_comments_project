@@ -43,8 +43,8 @@ async def get_comment_by_user(
 
 
 async def search_comments_by_keyword(
-    keyword: str,
-    session: AsyncSession
+        keyword: str,
+        session: AsyncSession
 ) -> list[Comment]:
     comments = (await session.execute(select(Comment))).scalars().all()
     result = [

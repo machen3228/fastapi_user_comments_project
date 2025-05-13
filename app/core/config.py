@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     database_url: str
     secret: str
     jwt_algorithm: str = "HS256"
-    acess_token_expiration_seconds: int = 60 * 15
+    access_token_expiration_seconds: int = 60 * 15
 
     class Config:
         env_file = '.env'

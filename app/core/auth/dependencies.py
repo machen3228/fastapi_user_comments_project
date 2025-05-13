@@ -10,14 +10,13 @@ from app.core.auth.backend import auth_backend
 from app.schemas.auth import PayloadSchema, AuthUser
 from app.models import User
 
-
 TOKEN_TYPE_FIELD = 'type'
 ACCESS_TOKEN_TYPE = 'access'
 REFRESH_TOKEN_TYPE = 'refresh'
 
 
 async def get_current_payload(
-    token: HTTPAuthorizationCredentials = Depends(oauth2_scheme)
+        token: HTTPAuthorizationCredentials = Depends(oauth2_scheme)
 ) -> PayloadSchema:
     try:
         payload = await auth_backend.get_current_user(token)
@@ -41,8 +40,8 @@ async def validate_token_type(payload: PayloadSchema, token_type: str) -> bool:
 
 
 async def get_user_by_sub(
-    payload: PayloadSchema,
-    session: AsyncSession = Depends(get_async_session),
+        payload: PayloadSchema,
+        session: AsyncSession = Depends(get_async_session),
 ) -> User:
     stmt = await session.execute(
         select(User).where(User.id == payload.sub)
@@ -63,11 +62,12 @@ async def get_user_by_sub(
 
 def get_auth_user_from_token_by_type(token_type: str):
     async def get_auth_user_from_token(
-        payload: PayloadSchema = Depends(get_current_payload),
-        session: AsyncSession = Depends(get_async_session),
+            payload: PayloadSchema = Depends(get_current_payload),
+            session: AsyncSession = Depends(get_async_session),
     ) -> AuthUser:
         await validate_token_type(payload, token_type)
         return await get_user_by_sub(payload, session)
+
     return get_auth_user_from_token
 
 

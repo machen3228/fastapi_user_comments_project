@@ -8,7 +8,6 @@ from app.services.auth import (
     create_refresh_token
 )
 
-
 router = APIRouter()
 
 
@@ -18,7 +17,7 @@ router = APIRouter()
              description='Войдите, используя свои имя пользователя и пароль',
              )
 async def auth_user_issue_jwt(
-    user: AuthUser = Depends(validate_auth_user),
+        user: AuthUser = Depends(validate_auth_user),
 ):
     access_token = await create_access_token(user)
     refresh_token = await create_refresh_token(user)
@@ -34,8 +33,7 @@ async def auth_user_issue_jwt(
              summary='Получение refresh-токена',
              )
 async def auth_user_issue_refresh_jwt(
-    user: AuthUser = Depends(get_current_auth_user_for_refresh),
+        user: AuthUser = Depends(get_current_auth_user_for_refresh),
 ):
     access_token = await create_access_token(user)
     return TokenInfo(access_token=access_token)
-

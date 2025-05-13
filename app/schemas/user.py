@@ -4,7 +4,6 @@ from typing import Optional
 
 from fastapi import Form
 
-
 EMAIL_FIELD = {
     'title': 'E-mail',
     'description': 'Введите существующий e-mail адрес',
@@ -45,11 +44,11 @@ class UserCreate(BaseModel):
 
     @classmethod
     def as_form(
-        cls,
-        email: EmailStr = Form(**EMAIL_FIELD),
-        password: str = Form(**PASSWORD_FIELD),
-        username: str = Form(**USERNAME_FIELD),
-        birthdate: Optional[date] = Form(**BIRTHDAY_FIELD),
+            cls,
+            email: EmailStr = Form(**EMAIL_FIELD),
+            password: str = Form(**PASSWORD_FIELD),
+            username: str = Form(**USERNAME_FIELD),
+            birthdate: Optional[date] = Form(**BIRTHDAY_FIELD),
     ):
         return cls(
             email=email,
@@ -86,11 +85,11 @@ class UserUpdate(BaseModel):
 
     @classmethod
     def as_form(
-        cls,
-        email: str = Form("", **EMAIL_FIELD),
-        password: str = Form("", **PASSWORD_FIELD_UPDATE),
-        username: str = Form("", **USERNAME_FIELD_UPDATE),
-        birthdate: str = Form("", **BIRTHDAY_FIELD),
+            cls,
+            email: str = Form("", **EMAIL_FIELD),
+            password: str = Form("", **PASSWORD_FIELD_UPDATE),
+            username: str = Form("", **USERNAME_FIELD_UPDATE),
+            birthdate: str = Form("", **BIRTHDAY_FIELD),
     ):
         return cls(
             email=email,

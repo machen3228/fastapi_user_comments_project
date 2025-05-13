@@ -13,9 +13,9 @@ async def hash_password(password: str) -> str:
 
 
 async def validate_auth_user(
-    session: AsyncSession = Depends(get_async_session),
-    username: str = Form(...),
-    password: str = Form(...),
+        session: AsyncSession = Depends(get_async_session),
+        username: str = Form(...),
+        password: str = Form(...),
 ) -> AuthUser:
     auth_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
