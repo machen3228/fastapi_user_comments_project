@@ -16,34 +16,33 @@ from app.schemas.comment import (
     CommentCreate, CommentDB, CommentUpdate, CommentResponse
 )
 
-
 router = APIRouter()
 
 
 @router.post(
-        '/',
-        response_model=CommentDB,
-        summary='Создание нового комментария'
+    '/',
+    response_model=CommentDB,
+    summary='Создание нового комментария'
 )
 async def create_new_comment(
         comment: CommentCreate = Depends(CommentCreate.as_form),
         author: AuthUser = Depends(get_current_auth_user),
         session: AsyncSession = Depends(get_async_session),
 ):
-    '''Только для авторизованных пользователей'''
+    """Только для авторизованных пользователей"""
     await check_user_exists(comment.user_id, session)
     new_comment = await create_comment(comment, author, session)
     return new_comment
 
 
 @router.get(
-        '/my_comments',
-        response_model=list[CommentDB],
-        summary='Получение всех комментариев автора'
+    '/my_comments',
+    response_model=list[CommentDB],
+    summary='Получение всех комментариев автора'
 )
 async def get_my_comments(
-    author: AuthUser = Depends(get_current_auth_user),
-    session: AsyncSession = Depends(get_async_session),
+        author: AuthUser = Depends(get_current_auth_user),
+        session: AsyncSession = Depends(get_async_session),
 ):
     """Получает список всех комментариев для текущего пользователя."""
     comments = await get_comment_by_user(
@@ -58,20 +57,20 @@ async def get_my_comments(
 
 
 @router.get(
-        '/{comment_id}',
-        response_model=CommentResponse,
-        summary='Получение комментария по id'
+    '/{comment_id}',
+    response_model=CommentResponse,
+    summary='Получение комментария по id'
 )
 async def get_comment(
-    comment_id: int = Path(
-        ...,
-        title="ID комментария",
-        description="Идентификатор комментария, который нужно вернуть"
+        comment_id: int = Path(
+            ...,
+            title="ID комментария",
+            description="Идентификатор комментария, который нужно вернуть"
         ),
-    author: AuthUser = Depends(get_current_auth_user),
-    session: AsyncSession = Depends(get_async_session),
+        author: AuthUser = Depends(get_current_auth_user),
+        session: AsyncSession = Depends(get_async_session),
 ):
-    '''Только для для авторов комментариев'''
+    """Только для для авторов комментариев"""
     comment = await check_comment_before_edit(
         comment_id, session, author
     )
@@ -79,15 +78,15 @@ async def get_comment(
 
 
 @router.get(
-        '/search/',
-        response_model=list[CommentDB],
-        summary='Поиск комментариев по ключевым словам'
+    '/search/',
+    response_model=list[CommentDB],
+    summary='Поиск комментариев по ключевым словам'
 )
 async def search_comments(
-    keyword: str = Query(..., description="Ключевое слово для поиска"),
-    session: AsyncSession = Depends(get_async_session)
+        keyword: str = Query(..., description="Ключевое слово для поиска"),
+        session: AsyncSession = Depends(get_async_session)
 ):
-    '''Для всех пользователей'''
+    """Для всех пользователей"""
     comments = await search_comments_by_keyword(keyword, session)
     return comments
 
@@ -99,15 +98,15 @@ async def search_comments(
 )
 async def partially_update_comment(
         comment_id: int = Path(
-        ...,
-        title="ID комментария",
-        description="Идентификатор комментария, который нужно отредактировать"
+            ...,
+            title="ID комментария",
+            description="Идентификатор комментария, который нужно отредактировать"
         ),
         obj_in: CommentUpdate = Depends(CommentUpdate.as_form),
         author: AuthUser = Depends(get_current_auth_user),
         session: AsyncSession = Depends(get_async_session),
 ):
-    '''Только для для авторов комментариев'''
+    """Только для для авторов комментариев"""
     comment = await check_comment_before_edit(
         comment_id, session, author
     )
@@ -124,14 +123,14 @@ async def partially_update_comment(
 )
 async def remove_comment(
         comment_id: int = Path(
-        ...,
-        title="ID комментария",
-        description="Идентификатор комментария, который нужно удалить"
+            ...,
+            title="ID комментария",
+            description="Идентификатор комментария, который нужно удалить"
         ),
         author: AuthUser = Depends(get_current_auth_user),
         session: AsyncSession = Depends(get_async_session),
 ):
-    '''Только для для авторов комментариев'''
+    """Только для для авторов комментариев"""
     comment = await check_comment_before_edit(
         comment_id, session, author
     )
