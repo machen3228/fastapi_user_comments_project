@@ -9,8 +9,8 @@ http_bearer = HTTPBearer(auto_error=False)
 main_router = APIRouter()
 
 main_router.include_router(
-   comment_router, prefix='/comments', tags=['Comments']
-   )
+    comment_router, prefix='/comments', tags=['Comments']
+)
 
 main_router.include_router(
     user_router,
