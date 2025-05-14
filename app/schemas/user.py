@@ -1,6 +1,6 @@
 from datetime import date
 from pydantic import BaseModel, EmailStr, field_validator, Field
-from typing import Optional
+from typing import Optional, Annotated, Union
 
 from fastapi import Form
 
@@ -30,73 +30,25 @@ USERNAME_FIELD_UPDATE = {
     'description': 'Введите имя пользователя (от 4 до 12 символов)',
 }
 BIRTHDAY_FIELD = {
-    'title': 'Дата рождения',
-    'description': 'Введите вашу дату рождения (необязательное поле)',
-    "example": "1990-01-01"
+    "title": 'Дата рождения',
+    "description": 'Введите вашу дату рождения (необязательное поле)',
+    "example": "1990-01-01",
+    "default": None
 }
 
 
 class UserCreate(BaseModel):
-    email: EmailStr = Field(**EMAIL_FIELD)
-    password: str = Field(**PASSWORD_FIELD)
-    username: str = Field(**USERNAME_FIELD)
-    birthdate: Optional[date] = Field(**BIRTHDAY_FIELD)
-
-    @classmethod
-    def as_form(
-            cls,
-            email: EmailStr = Form(**EMAIL_FIELD),
-            password: str = Form(**PASSWORD_FIELD),
-            username: str = Form(**USERNAME_FIELD),
-            birthdate: Optional[date] = Form(**BIRTHDAY_FIELD),
-    ):
-        return cls(
-            email=email,
-            password=password,
-            username=username,
-            birthdate=birthdate,
-        )
+    email: Annotated[EmailStr, Field(**EMAIL_FIELD)]
+    password: Annotated[str, Field(**PASSWORD_FIELD)]
+    username: Annotated[str, Field(**USERNAME_FIELD)]
+    birthdate: Annotated[Optional[date], Field(**BIRTHDAY_FIELD)] = None
 
 
 class UserUpdate(BaseModel):
-    email: Optional[EmailStr] = Field(None)
-    password: Optional[str] = Field(None)
-    username: Optional[str] = Field(None)
-    birthdate: Optional[date] = Field(None)
-
-    @field_validator("email", mode="before")
-    @classmethod
-    def validate_email(cls, v: Optional[str]) -> Optional[str]:
-        if v == "":
-            return None
-        return v
-
-    @field_validator('birthdate', mode='before')
-    @classmethod
-    def validate_birthdate(cls, v: Optional[str]) -> Optional[date]:
-        if v == "":
-            return None
-        if v is None:
-            return None
-        try:
-            return date.fromisoformat(v)
-        except ValueError:
-            raise ValueError("Дата должна быть в формате YYYY-MM-DD")
-
-    @classmethod
-    def as_form(
-            cls,
-            email: str = Form("", **EMAIL_FIELD),
-            password: str = Form("", **PASSWORD_FIELD_UPDATE),
-            username: str = Form("", **USERNAME_FIELD_UPDATE),
-            birthdate: str = Form("", **BIRTHDAY_FIELD),
-    ):
-        return cls(
-            email=email,
-            password=password,
-            username=username,
-            birthdate=birthdate,
-        )
+    email: Annotated[Optional[EmailStr], Field(**EMAIL_FIELD)] = None
+    password: Annotated[Optional[str], Field(**PASSWORD_FIELD)] = None
+    username: Annotated[Optional[str], Field(**USERNAME_FIELD)] = None
+    birthdate: Annotated[Optional[date], Field(BIRTHDAY_FIELD)] = None
 
 
 class UserOut(BaseModel):
