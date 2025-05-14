@@ -1,8 +1,6 @@
 from datetime import date
-from pydantic import BaseModel, EmailStr, field_validator, Field
-from typing import Optional, Annotated, Union
-
-from fastapi import Form
+from pydantic import BaseModel, EmailStr, Field
+from typing import Optional, Annotated
 
 EMAIL_FIELD = {
     'title': 'E-mail',
