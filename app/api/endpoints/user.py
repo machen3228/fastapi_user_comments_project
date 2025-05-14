@@ -1,6 +1,6 @@
 from typing import Annotated, TYPE_CHECKING
 
-from fastapi import APIRouter, Depends, Path, Form
+from fastapi import APIRouter, Depends, Form, Path
 
 from app.api.endpoints.validators import validate_user_before_create
 from app.core.auth.dependencies import get_current_auth_user
@@ -18,7 +18,7 @@ router = APIRouter()
 @router.post(
     "/sign-up",
     response_model=UserOut,
-    summary="Регистрация пользователя"
+    summary="User creation"
 )
 async def create_new_user(
         session: Annotated["AsyncSession", Depends(get_async_session)],
@@ -32,7 +32,7 @@ async def create_new_user(
 @router.get("/me",
             response_model=AuthUser,
             response_model_exclude_none=True,
-            summary="Получение информации о текущем пользователе",
+            summary="Current user information receive",
             )
 async def read_user_me(
         current_user: Annotated[AuthUser, Depends(get_current_auth_user)]
@@ -43,7 +43,7 @@ async def read_user_me(
 @router.patch(
     "/{user_id}/update",
     response_model=UserOut,
-    summary="Редактирование пользователя",
+    summary="User update",
 )
 async def update_existed_user(
         user_id: Annotated[int, Path(description="id пользователя")],
