@@ -1,10 +1,12 @@
-from typing import Annotated, List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING
 
+from fastapi import status
 from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import HTTPException
 
 from sqlalchemy import select
 
-from app.models import Comment, User
+from app.models import Comment
 from app.schemas.auth import AuthUser
 from app.schemas.comment import CommentCreate, CommentUpdate
 
@@ -50,12 +52,17 @@ async def search_comments_by_keyword(
         keyword: str,
         session: "AsyncSession"
 ) -> List[Comment]:
-    comments = (await session.execute(select(Comment))).scalars().all()
-    result = [
-        c for c in comments
-        if keyword.lower() in c.comment_text.lower()
-    ]
-    return result
+    stmt = select(Comment).where(
+        Comment.comment_text.like(f"%{keyword}%")
+    )
+    result = await session.execute(stmt)
+    comments = result.scalars().all()
+    if not comments:
+        raise HTTPException(
+            status_code=status.HTTP_204_NO_CONTENT,
+            detail="Comments not found"
+        )
+    return comments
 
 
 async def update_comment(
