@@ -10,18 +10,18 @@ class Comment(Base):
     comment_text = Column(
         Text,
         nullable=False,
-        comment="Текст комментария"
+        comment="Comment text"
     )
     created_at = Column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
+        default=func.now(),
         nullable=False,
-        comment="Дата и время создания комментария"
+        comment="Comment creation date and time"
     )
     updated_at = Column(
         DateTime,
         onupdate=func.now(),
-        comment="Дата и время редактирования комментария"
+        comment="Comment update date and time"
     )
     is_edited = Column(
         Boolean,
@@ -30,10 +30,10 @@ class Comment(Base):
     author_id = Column(
         Integer,
         ForeignKey('user.id'),
-        comment="ID автора комментария"
+        comment="Comment author id"
     )
     user_id = Column(
         Integer,
         nullable=False,
-        comment="ID пользователя"
+        comment="User id"
     )

@@ -4,32 +4,32 @@ from typing import Optional, Annotated
 
 EMAIL_FIELD = {
     'title': 'E-mail',
-    'description': 'Введите существующий e-mail адрес',
+    'description': 'Input existing email address',
     "example": "user@example.com"
 }
 PASSWORD_FIELD = {
-    'title': 'Пароль',
-    'description': 'Введите безопасный пароль не менее 6 символов',
+    'title': 'Password',
+    'description': 'Input safety password not shorter than 6 symbols',
     'min_length': 5,
     'max_length': 20
 }
 PASSWORD_FIELD_UPDATE = {
-    'title': 'Пароль',
-    'description': 'Введите безопасный пароль не менее 6 символов',
+    'title': 'Password',
+    'description': 'Input safety password not shorter than 6 symbols',
 }
 USERNAME_FIELD = {
-    'title': 'Имя пользователя',
-    'description': 'Придумайте имя пользователя (от 4 до 12 символов)',
+    'title': 'Username',
+    'description': 'Input unique username (4-12 symbols length)',
     'min_length': 4,
     'max_length': 12
 }
 USERNAME_FIELD_UPDATE = {
-    'title': 'Имя пользователя',
-    'description': 'Введите имя пользователя (от 4 до 12 символов)',
+    'title': 'Username',
+    'description': 'Input unique username (4-12 symbols length)',
 }
 BIRTHDAY_FIELD = {
-    "title": 'Дата рождения',
-    "description": 'Введите вашу дату рождения (необязательное поле)',
+    "title": 'Birghtday',
+    "description": 'Input birghtday (optional field)',
     "example": "1990-01-01",
     "default": None
 }

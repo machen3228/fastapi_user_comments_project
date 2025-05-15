@@ -46,7 +46,7 @@ async def read_user_me(
     summary="User update",
 )
 async def update_existed_user(
-        user_id: Annotated[int, Path(description="id пользователя")],
+        user_id: Annotated[int, Path(description="user id")],
         user_update: Annotated[UserUpdate, Form()],
         session: Annotated["AsyncSession", Depends(get_async_session)],
         current_user: Annotated[AuthUser, Depends(get_current_auth_user)],

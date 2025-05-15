@@ -6,7 +6,7 @@ from fastapi_auth_jwt import JWTAuthBackend
 
 
 class AuthenticationSettings(BaseModel):
-    """Настройки для JWT аутентификации"""
+    """JWT authentification settings"""
     secret: str = settings.secret
     jwt_algorithm: str = settings.jwt_algorithm
     expiration_seconds: int = settings.access_token_expiration_seconds

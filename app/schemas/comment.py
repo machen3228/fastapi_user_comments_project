@@ -1,14 +1,14 @@
 from datetime import datetime
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 from fastapi import Form
 
 COMMENT_TEXT_META = {
-    "description": "Основной текст, который пользователь отправляет",
+    "description": "Comment text",
     "max_length": 5000
 }
 USER_ID_META = {
-    "description": "Идентификатор пользователя, которому адресован комментарий"
+    "description": "The ID of the user who will receive the comment"
 }
 
 
@@ -16,39 +16,20 @@ class CommentCreate(BaseModel):
     comment_text: str = Field(..., **COMMENT_TEXT_META)
     user_id: int = Field(..., **USER_ID_META)
 
-    @classmethod
-    def as_form(
-            cls,
-            comment_text: str = Form(..., **COMMENT_TEXT_META),
-            user_id: int = Form(..., **USER_ID_META)
-    ) -> "CommentCreate":
-        return cls(comment_text=comment_text, user_id=user_id)
-
 
 class CommentUpdate(BaseModel):
     comment_text: str = Field(
         ...,
         max_length=5000,
-        description="Обновленный текст комментария"
+        description="Updated comment text",
+        title="Updated comment text",
     )
 
-    @validator('comment_text')
+    @field_validator('comment_text')
     def text_cannot_be_null(cls, value):
         if value is None or value.strip() == '':
-            raise ValueError('Комментарий не может быть пустым!')
+            raise ValueError('Comment shall not be empty!')
         return value
-
-    @classmethod
-    def as_form(
-            cls,
-            comment_text: str = Form(
-                ...,
-                max_length=5000,
-                title="Обновленный текст комментария",
-                description="Комментарий, который пользователь хочет обновить"
-            )
-    ) -> "CommentUpdate":
-        return cls(comment_text=comment_text)
 
 
 class CommentResponse(BaseModel):
@@ -71,7 +52,7 @@ class CommentDB(BaseModel):
     comment_text: str = Field(
         ...,
         max_length=5000,
-        description="Возвращаемый текст комментария"
+        description="Returned comment text"
     )
 
     class Config:

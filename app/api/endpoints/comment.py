@@ -1,6 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from typing import Annotated, List, TYPE_CHECKING
 
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import (
+    APIRouter, Depends, Form,
+    HTTPException, Path, status, Query
+)
 
 from app.api.endpoints.validators import (
     check_comment_before_edit, check_user_exists
@@ -16,20 +19,23 @@ from app.schemas.comment import (
     CommentCreate, CommentDB, CommentUpdate, CommentResponse
 )
 
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
 router = APIRouter()
 
 
 @router.post(
     '/',
     response_model=CommentDB,
-    summary='Создание нового комментария'
+    summary="Comment creation"
 )
 async def create_new_comment(
-        comment: CommentCreate = Depends(CommentCreate.as_form),
-        author: AuthUser = Depends(get_current_auth_user),
-        session: AsyncSession = Depends(get_async_session),
+        comment: Annotated[CommentCreate, Form()],
+        author: Annotated[AuthUser, Depends(get_current_auth_user)],
+        session: Annotated["AsyncSession", Depends(get_async_session)],
 ):
-    """Только для авторизованных пользователей"""
+    """For authorised users only"""
     await check_user_exists(comment.user_id, session)
     new_comment = await create_comment(comment, author, session)
     return new_comment
@@ -37,21 +43,21 @@ async def create_new_comment(
 
 @router.get(
     '/my_comments',
-    response_model=list[CommentDB],
-    summary='Получение всех комментариев автора'
+    response_model=List[CommentDB],
+    summary="All your comments receive"
 )
 async def get_my_comments(
-        author: AuthUser = Depends(get_current_auth_user),
-        session: AsyncSession = Depends(get_async_session),
+        author: Annotated[AuthUser, Depends(get_current_auth_user)],
+        session: Annotated["AsyncSession", Depends(get_async_session)],
 ):
-    """Получает список всех комментариев для текущего пользователя."""
+    """For authorised users only"""
     comments = await get_comment_by_user(
         session=session, author=author
     )
     if not comments:
         raise HTTPException(
-            status_code=404,
-            detail="Комментарии не найдены"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Comments are not found"
         )
     return comments
 
@@ -59,18 +65,19 @@ async def get_my_comments(
 @router.get(
     '/{comment_id}',
     response_model=CommentResponse,
-    summary='Получение комментария по id'
+    summary="Receive comment by id"
 )
 async def get_comment(
-        comment_id: int = Path(
-            ...,
-            title="ID комментария",
-            description="Идентификатор комментария, который нужно вернуть"
-        ),
-        author: AuthUser = Depends(get_current_auth_user),
-        session: AsyncSession = Depends(get_async_session),
+        comment_id: Annotated[
+            int,
+            Path(...,
+                 title="Comment id",
+                 description="Comment id to be returned")
+        ],
+        author: Annotated[AuthUser, Depends(get_current_auth_user)],
+        session: Annotated["AsyncSession", Depends(get_async_session)],
 ):
-    """Только для для авторов комментариев"""
+    """For comment author only"""
     comment = await check_comment_before_edit(
         comment_id, session, author
     )
@@ -79,14 +86,19 @@ async def get_comment(
 
 @router.get(
     '/search/',
-    response_model=list[CommentDB],
-    summary='Поиск комментариев по ключевым словам'
+    response_model=List[CommentDB],
+    summary="Receive comments by substring"
 )
 async def search_comments(
-        keyword: str = Query(..., description="Ключевое слово для поиска"),
-        session: AsyncSession = Depends(get_async_session)
+        keyword: Annotated[
+            str,
+            Query(...,
+                  description="Keyword for searching"
+                  )
+        ],
+        session: Annotated["AsyncSession", Depends(get_async_session)]
 ):
-    """Для всех пользователей"""
+    """For all users"""
     comments = await search_comments_by_keyword(keyword, session)
     return comments
 
@@ -94,19 +106,21 @@ async def search_comments(
 @router.patch(
     '/{comment_id}',
     response_model=CommentResponse,
-    summary='Редактирование комментария'
+    summary="Comment update"
 )
 async def partially_update_comment(
-        comment_id: int = Path(
-            ...,
-            title="ID комментария",
-            description="Идентификатор комментария, который нужно отредактировать"
-        ),
-        obj_in: CommentUpdate = Depends(CommentUpdate.as_form),
-        author: AuthUser = Depends(get_current_auth_user),
-        session: AsyncSession = Depends(get_async_session),
+        comment_id: Annotated[
+            int,
+            Path(...,
+                 title="Comment id",
+                 description="Comment id, to be updated"
+                 )
+        ],
+        obj_in: Annotated[CommentUpdate, Form()],
+        author: Annotated[AuthUser, Depends(get_current_auth_user)],
+        session: Annotated["AsyncSession", Depends(get_async_session)],
 ):
-    """Только для для авторов комментариев"""
+    """For comment author only"""
     comment = await check_comment_before_edit(
         comment_id, session, author
     )
@@ -119,18 +133,20 @@ async def partially_update_comment(
 @router.delete(
     '/{comment_id}',
     response_model=CommentDB,
-    summary='Удаление комментария'
+    summary='Comment removal'
 )
 async def remove_comment(
-        comment_id: int = Path(
-            ...,
-            title="ID комментария",
-            description="Идентификатор комментария, который нужно удалить"
-        ),
-        author: AuthUser = Depends(get_current_auth_user),
-        session: AsyncSession = Depends(get_async_session),
+        comment_id: Annotated[
+            int,
+            Path(...,
+                 title="Comment id",
+                 description="Comment id, to be removed"
+                 )
+        ],
+        author: Annotated[AuthUser, Depends(get_current_auth_user)],
+        session: Annotated["AsyncSession", Depends(get_async_session)],
 ):
-    """Только для для авторов комментариев"""
+    """For comment author only"""
     comment = await check_comment_before_edit(
         comment_id, session, author
     )

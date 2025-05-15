@@ -1,14 +1,20 @@
+from typing import Annotated, TYPE_CHECKING
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials
-from jwt import InvalidTokenError
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
+from jwt import InvalidTokenError
+
+from sqlalchemy import select
+
+from app.core.auth.backend import auth_backend
 from app.core.db import get_async_session
 from app.core.security import oauth2_scheme
-from app.core.auth.backend import auth_backend
 from app.schemas.auth import PayloadSchema, AuthUser
 from app.models import User
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 TOKEN_TYPE_FIELD = 'type'
 ACCESS_TOKEN_TYPE = 'access'
@@ -16,7 +22,7 @@ REFRESH_TOKEN_TYPE = 'refresh'
 
 
 async def get_current_payload(
-        token: HTTPAuthorizationCredentials = Depends(oauth2_scheme)
+        token: Annotated[HTTPAuthorizationCredentials, Depends(oauth2_scheme)]
 ) -> PayloadSchema:
     try:
         payload = await auth_backend.get_current_user(token)
@@ -28,7 +34,10 @@ async def get_current_payload(
         )
 
 
-async def validate_token_type(payload: PayloadSchema, token_type: str) -> bool:
+async def validate_token_type(
+        payload: PayloadSchema,
+        token_type: str
+) -> bool:
     current_token_type = payload.type
     if current_token_type == token_type:
         return True
@@ -41,7 +50,7 @@ async def validate_token_type(payload: PayloadSchema, token_type: str) -> bool:
 
 async def get_user_by_sub(
         payload: PayloadSchema,
-        session: AsyncSession = Depends(get_async_session),
+        session: Annotated["AsyncSession", Depends(get_async_session)],
 ) -> User:
     stmt = await session.execute(
         select(User).where(User.id == payload.sub)
@@ -62,8 +71,8 @@ async def get_user_by_sub(
 
 def get_auth_user_from_token_by_type(token_type: str):
     async def get_auth_user_from_token(
-            payload: PayloadSchema = Depends(get_current_payload),
-            session: AsyncSession = Depends(get_async_session),
+            payload: Annotated[PayloadSchema, Depends(get_current_payload)],
+            session: Annotated["AsyncSession", Depends(get_async_session)],
     ) -> AuthUser:
         await validate_token_type(payload, token_type)
         return await get_user_by_sub(payload, session)

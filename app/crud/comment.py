@@ -1,17 +1,21 @@
+from typing import Annotated, List, TYPE_CHECKING
+
 from fastapi.encoders import jsonable_encoder
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.models import Comment, User
 from app.schemas.auth import AuthUser
 from app.schemas.comment import CommentCreate, CommentUpdate
 
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
 
 async def create_comment(
         new_comment: CommentCreate,
         author: AuthUser,
-        session: AsyncSession,
+        session: "AsyncSession",
 ) -> Comment:
     new_comment_data = new_comment.dict()
     new_comment_data['author_id'] = author.id
@@ -24,16 +28,16 @@ async def create_comment(
 
 async def get_comment_by_id(
         comment_id: int,
-        session: AsyncSession,
+        session: "AsyncSession",
 ) -> Comment:
     db_comment = await session.get(Comment, comment_id)
     return db_comment
 
 
 async def get_comment_by_user(
-        session: AsyncSession,
+        session: "AsyncSession",
         author: AuthUser
-) -> list[Comment]:
+) -> List[Comment]:
     comments = await session.execute(
         select(Comment).where(
             Comment.author_id == author.id
@@ -44,8 +48,8 @@ async def get_comment_by_user(
 
 async def search_comments_by_keyword(
         keyword: str,
-        session: AsyncSession
-) -> list[Comment]:
+        session: "AsyncSession"
+) -> List[Comment]:
     comments = (await session.execute(select(Comment))).scalars().all()
     result = [
         c for c in comments
@@ -57,7 +61,7 @@ async def search_comments_by_keyword(
 async def update_comment(
         db_comment: Comment,
         comment_in: CommentUpdate,
-        session: AsyncSession,
+        session: "AsyncSession",
 ) -> Comment:
     obj_data = jsonable_encoder(db_comment)
     update_data = comment_in.dict(exclude_unset=True)
@@ -74,7 +78,7 @@ async def update_comment(
 
 async def delete_comment(
         db_comment: Comment,
-        session: AsyncSession,
+        session: "AsyncSession",
 ) -> Comment:
     await session.delete(db_comment)
     await session.commit()

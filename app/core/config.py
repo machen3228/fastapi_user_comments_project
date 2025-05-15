@@ -2,8 +2,8 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    app_title: str = 'Сервис с комментариями'
-    description: str = 'Содоржательное описание сервиса'
+    app_title: str = 'Comments service application'
+    description: str = 'Service description'
     database_url: str
     secret: str
     jwt_algorithm: str = "HS256"
