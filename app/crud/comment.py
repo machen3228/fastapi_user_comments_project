@@ -6,10 +6,9 @@ from fastapi.exceptions import HTTPException
 
 from sqlalchemy import select
 
-from app.models import Comment
+from app.models import CommentsORM
 from app.schemas.auth import AuthUser
 from app.schemas.comment import CommentCreate, CommentUpdate
-
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,10 +17,10 @@ async def create_comment(
         new_comment: CommentCreate,
         author: AuthUser,
         session: "AsyncSession",
-) -> Comment:
+) -> CommentsORM:
     new_comment_data = new_comment.dict()
     new_comment_data['author_id'] = author.id
-    db_comment = Comment(**new_comment_data)
+    db_comment = CommentsORM(**new_comment_data)
     session.add(db_comment)
     await session.commit()
     await session.refresh(db_comment)
@@ -31,45 +30,46 @@ async def create_comment(
 async def get_comment_by_id(
         comment_id: int,
         session: "AsyncSession",
-) -> Comment:
-    db_comment = await session.get(Comment, comment_id)
+) -> CommentsORM | None:
+    db_comment = await session.get(CommentsORM, comment_id)
     return db_comment
 
 
 async def get_comment_by_user(
+        author: AuthUser,
         session: "AsyncSession",
-        author: AuthUser
-) -> List[Comment]:
-    comments = await session.execute(
-        select(Comment).where(
-            Comment.author_id == author.id
+) -> List[CommentsORM]:
+    query = await session.execute(
+        select(CommentsORM).where(
+            CommentsORM.author_id == author.id
         )
     )
-    return comments.scalars().all()
+    result = query.scalars().all()
+    return list(result)
 
 
 async def search_comments_by_keyword(
         keyword: str,
         session: "AsyncSession"
-) -> List[Comment]:
-    stmt = select(Comment).where(
-        Comment.comment_text.like(f"%{keyword}%")
+) -> List[CommentsORM]:
+    query = select(CommentsORM).where(
+        CommentsORM.comment_text.like(f"%{keyword}%")
     )
-    result = await session.execute(stmt)
+    result = await session.execute(query)
     comments = result.scalars().all()
     if not comments:
         raise HTTPException(
             status_code=status.HTTP_204_NO_CONTENT,
             detail="Comments not found"
         )
-    return comments
+    return list(comments)
 
 
 async def update_comment(
-        db_comment: Comment,
+        db_comment: CommentsORM,
         comment_in: CommentUpdate,
         session: "AsyncSession",
-) -> Comment:
+) -> CommentsORM:
     obj_data = jsonable_encoder(db_comment)
     update_data = comment_in.dict(exclude_unset=True)
     db_comment.is_edited = True
@@ -84,9 +84,9 @@ async def update_comment(
 
 
 async def delete_comment(
-        db_comment: Comment,
+        db_comment: CommentsORM,
         session: "AsyncSession",
-) -> Comment:
+) -> CommentsORM:
     await session.delete(db_comment)
     await session.commit()
     return db_comment

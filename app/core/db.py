@@ -1,28 +1,21 @@
-from sqlalchemy import Column, Integer
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import declarative_base, declared_attr, sessionmaker
+from typing import AsyncGenerator
+
+
+from sqlalchemy.ext.asyncio import (
+    AsyncSession, async_sessionmaker, create_async_engine
+)
+from sqlalchemy.orm import DeclarativeBase
 
 from app.core.config import settings
 
 
-class PreBase:
+async_engine = create_async_engine(settings.database_url)
 
-    @declared_attr
-    def __tablename__(cls):
-        return cls.__name__.lower()
-
-    id = Column(Integer, primary_key=True)
+async_session_factory = async_sessionmaker(async_engine, class_=AsyncSession)
 
 
-Base = declarative_base(cls=PreBase)
-
-engine = create_async_engine(settings.database_url)
-
-AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession)
-
-
-async def get_async_session():
-    async with AsyncSessionLocal() as async_session:
+async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
+    async with async_session_factory() as async_session:
         try:
             yield async_session
         except Exception as e:
@@ -30,3 +23,12 @@ async def get_async_session():
             raise e
         finally:
             await async_session.close()
+
+
+class Base(DeclarativeBase):
+
+    def __repr__(self):
+        cols = []
+        for col in self.__table__.columns.keys():
+            cols.append(f"{col=}={getattr(self, col)}")
+        return f"<{self.__class__.__name__} {','.join(cols)}>"

@@ -10,9 +10,8 @@ from sqlalchemy import select
 from app.core.auth.backend import auth_backend
 from app.core.db import get_async_session
 from app.core.security import oauth2_scheme
-from app.schemas.auth import PayloadSchema, AuthUser
-from app.models import User
-
+from app.schemas.auth import PayloadSchema
+from app.models import UsersORM
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -51,11 +50,11 @@ async def validate_token_type(
 async def get_user_by_sub(
         payload: PayloadSchema,
         session: Annotated["AsyncSession", Depends(get_async_session)],
-) -> User:
-    stmt = await session.execute(
-        select(User).where(User.id == payload.sub)
+) -> UsersORM:
+    query = await session.execute(
+        select(UsersORM).where(UsersORM.id == payload.sub)
     )
-    db_user = stmt.scalars().first()
+    db_user = query.scalars().first()
     if not db_user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -64,7 +63,7 @@ async def get_user_by_sub(
     if not db_user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail='User inactive'
+            detail='UsersORM inactive'
         )
     return db_user
 
@@ -73,7 +72,7 @@ def get_auth_user_from_token_by_type(token_type: str):
     async def get_auth_user_from_token(
             payload: Annotated[PayloadSchema, Depends(get_current_payload)],
             session: Annotated["AsyncSession", Depends(get_async_session)],
-    ) -> AuthUser:
+    ) -> UsersORM:
         await validate_token_type(payload, token_type)
         return await get_user_by_sub(payload, session)
 

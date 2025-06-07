@@ -1,16 +1,35 @@
-from sqlalchemy import (
-    Column, DateTime, String, Boolean, Float, func
-)
+from datetime import datetime, UTC
+
+from sqlalchemy.orm import Mapped, mapped_column
 from app.core.db import Base
 
 
-class User(Base):
-    email = Column(String, unique=True, index=True, nullable=False)
-    password = Column(String, nullable=False)
-    username = Column(String, unique=True, nullable=False)
-    birthdate = Column(DateTime)
-    rating = Column(Float, default=0.0)
-    registered_at = Column(DateTime, server_default=func.now())
-    last_login = Column(DateTime)
-    is_active = Column(Boolean, default=True)
-    is_superuser = Column(Boolean, default=False)
+class UsersORM(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(
+        primary_key=True
+    )
+    username: Mapped[str] = mapped_column(
+        unique=True,
+    )
+    email: Mapped[str] = mapped_column(
+        unique=True,
+    )
+    password: Mapped[str]
+    birthday: Mapped[datetime | None]
+    rating: Mapped[float] = mapped_column(
+        default=0.0,
+    )
+    registered_at: Mapped[datetime] = mapped_column(
+        default=datetime.now(UTC),
+    )
+    last_login: Mapped[datetime] = mapped_column(
+        nullable=True,
+    )
+    is_active: Mapped[bool] = mapped_column(
+        default=True,
+    )
+    is_superuser: Mapped[bool] = mapped_column(
+        default=False,
+    )

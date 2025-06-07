@@ -18,9 +18,9 @@ from app.schemas.auth import AuthUser
 from app.schemas.comment import (
     CommentCreate, CommentDB, CommentUpdate, CommentResponse
 )
-
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
+
 
 router = APIRouter()
 
@@ -52,7 +52,7 @@ async def get_my_comments(
 ):
     """For authorised users only"""
     comments = await get_comment_by_user(
-        session=session, author=author
+        author=author, session=session
     )
     if not comments:
         raise HTTPException(
@@ -71,15 +71,15 @@ async def get_comment(
         comment_id: Annotated[
             int,
             Path(...,
-                 title="Comment id",
-                 description="Comment id to be returned")
+                 title="Comments id",
+                 description="Comments id to be returned")
         ],
         author: Annotated[AuthUser, Depends(get_current_auth_user)],
         session: Annotated["AsyncSession", Depends(get_async_session)],
 ):
     """For comment author only"""
     comment = await check_comment_before_edit(
-        comment_id, session, author
+        comment_id, author, session
     )
     return comment
 
@@ -96,7 +96,7 @@ async def search_comments(
                   description="Keyword for searching"
                   )
         ],
-        session: Annotated["AsyncSession", Depends(get_async_session)]
+        session: Annotated["AsyncSession", Depends(get_async_session)],
 ):
     """For all users"""
     comments = await search_comments_by_keyword(keyword, session)
@@ -122,7 +122,7 @@ async def partially_update_comment(
 ):
     """For comment author only"""
     comment = await check_comment_before_edit(
-        comment_id, session, author
+        comment_id, author, session
     )
     comment = await update_comment(
         comment, obj_in, session
@@ -148,7 +148,7 @@ async def remove_comment(
 ):
     """For comment author only"""
     comment = await check_comment_before_edit(
-        comment_id, session, author
+        comment_id, author, session
     )
     comment = await delete_comment(
         comment, session

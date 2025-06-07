@@ -1,8 +1,9 @@
 from pydantic import BaseModel
 
-from app.schemas.auth import PayloadSchema
-from app.core.config import settings
 from fastapi_auth_jwt import JWTAuthBackend
+
+from app.core.config import settings
+from app.schemas.auth import PayloadSchema
 
 
 class AuthenticationSettings(BaseModel):

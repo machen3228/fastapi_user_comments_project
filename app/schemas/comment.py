@@ -4,7 +4,7 @@ from typing import Optional
 from fastapi import Form
 
 COMMENT_TEXT_META = {
-    "description": "Comment text",
+    "description": "CommentsORM text",
     "max_length": 5000
 }
 USER_ID_META = {
@@ -28,7 +28,7 @@ class CommentUpdate(BaseModel):
     @field_validator('comment_text')
     def text_cannot_be_null(cls, value):
         if value is None or value.strip() == '':
-            raise ValueError('Comment shall not be empty!')
+            raise ValueError('CommentsORM shall not be empty!')
         return value
 
 

@@ -21,8 +21,8 @@ router = APIRouter()
     summary="User creation"
 )
 async def create_new_user(
-        session: Annotated["AsyncSession", Depends(get_async_session)],
         user_in: Annotated[UserCreate, Form()],
+        session: Annotated["AsyncSession", Depends(get_async_session)],
 ):
     await validate_user_before_create(user_in, session)
     new_user = await create_user(user_in, session)
@@ -48,13 +48,13 @@ async def read_user_me(
 async def update_existed_user(
         user_id: Annotated[int, Path(description="user id")],
         user_update: Annotated[UserUpdate, Form()],
-        session: Annotated["AsyncSession", Depends(get_async_session)],
         current_user: Annotated[AuthUser, Depends(get_current_auth_user)],
+        session: Annotated["AsyncSession", Depends(get_async_session)],
 ):
     result = await update_user(
         user_id,
         user_update,
-        session,
         current_user,
+        session,
     )
     return result

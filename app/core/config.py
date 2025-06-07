@@ -1,4 +1,7 @@
-from pydantic_settings import BaseSettings
+from pathlib import Path
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+env_path = Path(__file__).parent.parent.parent / ".env"
 
 
 class Settings(BaseSettings):
@@ -9,9 +12,9 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_expiration_seconds: int = 60 * 15
 
-    class Config:
-        env_file = '.env'
-        env_file_encoding = 'utf-8'
-
+    model_config = SettingsConfigDict(
+        env_file=env_path,
+        env_file_encoding='utf-8'
+    )
 
 settings = Settings()

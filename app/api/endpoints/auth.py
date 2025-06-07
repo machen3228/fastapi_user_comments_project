@@ -3,16 +3,16 @@ from typing import Annotated, TYPE_CHECKING
 from fastapi import APIRouter, Depends
 
 from app.core.auth.dependencies import get_current_auth_user_for_refresh
-from app.crud.auth import validate_auth_user, last_login
 from app.core.db import get_async_session
+from app.crud.auth import validate_auth_user, last_login
 from app.schemas.auth import AuthUser, TokenInfo
 from app.services.auth import (
     create_access_token,
     create_refresh_token
 )
-
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
+
 
 router = APIRouter()
 
@@ -24,7 +24,7 @@ router = APIRouter()
              )
 async def auth_user_issue_jwt(
         user: Annotated[AuthUser, Depends(validate_auth_user)],
-        session: Annotated["AsyncSession", Depends(get_async_session)]
+        session: Annotated["AsyncSession", Depends(get_async_session)],
 ):
     access_token = await create_access_token(user)
     refresh_token = await create_refresh_token(user)

@@ -1,2 +1,2 @@
-from .comment import Comment
-from .user import User
+from .comments import CommentsORM
+from .user import UsersORM
